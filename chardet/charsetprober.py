@@ -1,7 +1,10 @@
 import logging
 import re
-from .enums import ProbingState
-INTERNATIONAL_WORDS_PATTERN = re.compile(b'[a-zA-Z]*[\x80-\xff]+[a-zA-Z]*[^a-zA-Z\x80-\xff]?')
+
+INTERNATIONAL_WORDS_PATTERN = re.compile(
+    b"[a-zA-Z]*[\x80-\xff]+[a-zA-Z]*[^a-zA-Z\x80-\xff]?"
+)
+
 
 class CharSetProber:
     SHORTCUT_THRESHOLD = 0.95
@@ -13,8 +16,7 @@ class CharSetProber:
 
     @staticmethod
     def filter_international_words(buf):
-        """
-        We define three types of bytes:
+        """We define three types of bytes:
         alphabet: english alphabets [a-zA-Z]
         international: international characters [\x80-ÿ]
         marker: everything else [^a-zA-Z\x80-ÿ]
@@ -24,13 +26,12 @@ class CharSetProber:
         are replaced by a single space ascii character.
         This filter applies to all scripts which do not use English characters.
         """
-        filtered = INTERNATIONAL_WORDS_PATTERN.sub(b' ', buf)
+        filtered = INTERNATIONAL_WORDS_PATTERN.sub(b" ", buf)
         return filtered
 
     @staticmethod
     def remove_xml_tags(buf):
-        """
-        Returns a copy of ``buf`` that retains only the sequences of English
+        """Returns a copy of ``buf`` that retains only the sequences of English
         alphabet and high byte characters that are not between <> characters.
         This filter can be applied to all scripts which contain both English
         characters and extended ASCII characters, but is currently only used by
@@ -39,9 +40,9 @@ class CharSetProber:
         inside_tag = False
         filtered = bytearray()
         for byte in buf:
-            if byte == ord(b'<'):
+            if byte == ord(b"<"):
                 inside_tag = True
-            elif byte == ord(b'>'):
+            elif byte == ord(b">"):
                 inside_tag = False
             elif not inside_tag:
                 filtered.append(byte)
