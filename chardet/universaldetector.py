@@ -170,6 +170,7 @@ class UniversalDetector:
                 self._esc_charset_prober = EscCharSetProber(self.lang_filter)
             if (
                 self._esc_charset_prober
+                and hasattr(self._esc_charset_prober, "feed")
                 and self._esc_charset_prober.feed(byte_str) == ProbingState.FOUND_IT
             ):
                 if (
@@ -178,9 +179,9 @@ class UniversalDetector:
                     and hasattr(self._esc_charset_prober, "language")
                 ):
                     self.result = {
-                        "encoding": self._esc_charset_prober.charset_name,
-                        "confidence": self._esc_charset_prober.get_confidence(),
-                        "language": self._esc_charset_prober.language,
+                        "encoding": getattr(self._esc_charset_prober, "charset_name"),
+                        "confidence": getattr(self._esc_charset_prober, "get_confidence")(),
+                        "language": getattr(self._esc_charset_prober, "language"),
                     }
                     self.done = True
         elif self._input_state == InputState.HIGH_BYTE:
@@ -226,7 +227,9 @@ class UniversalDetector:
                 else self._charset_probers
             )
             prober_confidences = [
-                (prober, prober.get_confidence()) for prober in probers if prober
+                (prober, getattr(prober, "get_confidence")())
+                for prober in probers
+                if prober and hasattr(prober, "get_confidence")
             ]
             if prober_confidences:
                 max_prober = max(prober_confidences, key=lambda x: x[1])
@@ -235,9 +238,9 @@ class UniversalDetector:
                         max_prober[0], "language"
                     ):
                         self.result = {
-                            "encoding": max_prober[0].charset_name,
+                            "encoding": getattr(max_prober[0], "charset_name"),
                             "confidence": max_prober[1],
-                            "language": max_prober[0].language,
+                            "language": getattr(max_prober[0], "language"),
                         }
             elif self._has_win_bytes:
                 self.result = {
