@@ -7059,6 +7059,7 @@ jp2_char_context = (
 
 from typing import List, Optional
 
+
 class JapaneseContextAnalysis:
     NUM_OF_CATEGORY = 6
     DONT_KNOW = -1
