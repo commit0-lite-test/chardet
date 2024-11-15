@@ -22,15 +22,39 @@ class CharDistributionAnalysis:
 
     def reset(self):
         """reset analyser, clear any state"""
-        pass
+        self._done = False
+        self._total_chars = 0
+        self._freq_chars = 0
 
     def feed(self, char, char_len):
         """feed a character with known length"""
-        pass
+        if char_len == 2:
+            # we only care about 2-bytes character in our distribution analysis
+            order = self.get_order(char)
+            if order != -1:
+                self._total_chars += 1
+                if order < self._table_size:
+                    self._freq_chars += 1
 
     def get_confidence(self):
         """return confidence based on existing data"""
-        pass
+        if self._total_chars <= 0 or self._freq_chars <= self.MINIMUM_DATA_THRESHOLD:
+            return self.SURE_NO
+
+        if self._total_chars != self._freq_chars:
+            r = self._freq_chars / ((self._total_chars - self._freq_chars) * self.typical_distribution_ratio)
+            if r < self.SURE_YES:
+                return r
+
+        return self.SURE_YES
+
+    def get_order(self, char):
+        # We only care about 2-bytes characters.
+        if len(char) != 2:
+            return -1
+        
+        # The char_to_freq_order dictionary uses the byte string as key
+        return self._char_to_freq_order.get(char, -1)
 
 class EUCTWDistributionAnalysis(CharDistributionAnalysis):
 
