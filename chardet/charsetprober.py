@@ -1,4 +1,5 @@
 import logging
+from typing import Optional, Union
 import re
 
 INTERNATIONAL_WORDS_PATTERN = re.compile(
@@ -9,14 +10,14 @@ INTERNATIONAL_WORDS_PATTERN = re.compile(
 class CharSetProber:
     SHORTCUT_THRESHOLD = 0.95
 
-    def __init__(self, lang_filter=None):
-        self._state = None
+    def __init__(self, lang_filter: Optional[str] = None):
+        self._state: Optional[str] = None
         self.lang_filter = lang_filter
         self.logger = logging.getLogger(__name__)
 
     @staticmethod
-    def filter_international_words(buf):
-        """We define three types of bytes:
+    def filter_international_words(buf: Union[bytes, bytearray]) -> bytes:
+        r"""We define three types of bytes:
         alphabet: english alphabets [a-zA-Z]
         international: international characters [\x80-ÿ]
         marker: everything else [^a-zA-Z\x80-ÿ]
@@ -30,7 +31,7 @@ class CharSetProber:
         return filtered
 
     @staticmethod
-    def remove_xml_tags(buf):
+    def remove_xml_tags(buf: Union[bytes, bytearray]) -> bytes:
         """Returns a copy of ``buf`` that retains only the sequences of English
         alphabet and high byte characters that are not between <> characters.
         This filter can be applied to all scripts which contain both English
