@@ -180,7 +180,9 @@ class UniversalDetector:
                 ):
                     self.result = {
                         "encoding": getattr(self._esc_charset_prober, "charset_name"),
-                        "confidence": getattr(self._esc_charset_prober, "get_confidence")(),
+                        "confidence": getattr(
+                            self._esc_charset_prober, "get_confidence"
+                        )(),
                         "language": getattr(self._esc_charset_prober, "language"),
                     }
                     self.done = True
@@ -250,4 +252,8 @@ class UniversalDetector:
                 }
 
         self.done = True
-        return self.result if self.result["encoding"] is not None else {"encoding": None, "confidence": 0.0, "language": None}
+        return (
+            self.result
+            if self.result["encoding"] is not None
+            else {"encoding": None, "confidence": 0.0, "language": None}
+        )
