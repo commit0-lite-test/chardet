@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Union
 from .charsetprober import CharSetProber
 from .enums import ProbingState
 
@@ -35,9 +35,9 @@ class UTF1632Prober(CharSetProber):
 
     def get_confidence(self) -> float:
         """Return the confidence of the prober."""
-        if self._state == ProbingState.FOUND_IT:
+        if self.state == ProbingState.FOUND_IT:
             return 0.99
-        elif self._state == ProbingState.NOT_ME:
+        elif self.state == ProbingState.NOT_ME:
             return 0.01
         else:
             return 0.5
@@ -57,7 +57,6 @@ class UTF1632Prober(CharSetProber):
         self.position = 0
         self.zeros_at_mod = [0] * 4
         self.nonzeros_at_mod = [0] * 4
-        self._state: Optional[ProbingState] = None
         self.quad = [0, 0, 0, 0]
         self.invalid_utf16be = False
         self.invalid_utf16le = False
@@ -69,10 +68,10 @@ class UTF1632Prober(CharSetProber):
 
     def reset(self) -> None:
         """Reset the prober state."""
+        super().reset()
         self.position = 0
         self.zeros_at_mod = [0] * 4
         self.nonzeros_at_mod = [0] * 4
-        self._state = ProbingState.DETECTING
         self.quad = [0, 0, 0, 0]
         self.invalid_utf16be = False
         self.invalid_utf16le = False
@@ -83,8 +82,8 @@ class UTF1632Prober(CharSetProber):
 
     def feed(self, byte_str: Union[bytes, bytearray]) -> ProbingState:
         """Feed a chunk of data through the prober."""
-        if self._state == ProbingState.NOT_ME:
-            return self._state
+        if self.state == ProbingState.NOT_ME:
+            return self.state
 
         for byte in byte_str:
             self.quad[self.position % 4] = byte
@@ -136,10 +135,10 @@ class UTF1632Prober(CharSetProber):
 
             if self.position >= self.MIN_CHARS_FOR_DETECTION:
                 if self._check_encoding():
-                    self._state = ProbingState.FOUND_IT
+                    self.state = ProbingState.FOUND_IT
                     break
 
-        return self._state if self._state is not None else ProbingState.NOT_ME
+        return self.state
 
     def validate_utf32_characters(self, quad: bytes) -> bool:
         """Validate if the quad of bytes is valid UTF-32.
