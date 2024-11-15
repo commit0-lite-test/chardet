@@ -10,7 +10,7 @@ class a user of ``chardet`` should use.
 import codecs
 import logging
 import re
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Any
 from .enums import InputState, LanguageFilter, ProbingState
 from .escprober import EscCharSetProber
 from .latin1prober import Latin1Prober
@@ -54,8 +54,8 @@ class UniversalDetector:
     }
 
     def __init__(self, lang_filter: Union[LanguageFilter, int] = LanguageFilter.ALL):
-        self._esc_charset_prober: Optional[EscCharSetProber] = None
-        self._utf1632_prober: Optional[UTF1632Prober] = None
+        self._esc_charset_prober: Optional[Any] = None
+        self._utf1632_prober: Optional[Any] = None
         self._charset_probers: list = []
         self.lang_filter = lang_filter
         self.result = None
@@ -247,4 +247,4 @@ class UniversalDetector:
                 }
 
         self.done = True
-        return self.result
+        return self.result if self.result["encoding"] is not None else {"encoding": None, "confidence": 0.0, "language": None}
