@@ -99,6 +99,7 @@ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
 class JOHABDistributionAnalysis(CharDistributionAnalysis):
     def __init__(self):
         super().__init__()
+        # JOHAB uses the same frequency table as EUC-KR
         self._char_to_freq_order = EUCKR_CHAR_TO_FREQ_ORDER
         self._table_size = EUCKR_TABLE_SIZE
         self.typical_distribution_ratio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
