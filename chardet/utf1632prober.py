@@ -68,7 +68,7 @@ class UTF1632Prober(CharSetProber):
 
     def reset(self) -> None:
         """Reset the prober state."""
-        super().reset()
+        CharSetProber.reset(self)
         self.position = 0
         self.zeros_at_mod = [0] * 4
         self.nonzeros_at_mod = [0] * 4
