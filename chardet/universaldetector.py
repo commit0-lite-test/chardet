@@ -10,7 +10,7 @@ class a user of ``chardet`` should use.
 import codecs
 import logging
 import re
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 from .enums import InputState, LanguageFilter, ProbingState
 from .escprober import EscCharSetProber
 from .latin1prober import Latin1Prober
@@ -53,10 +53,11 @@ class UniversalDetector:
         "iso-8859-13": "Windows-1257",
     }
 
-    def __init__(self, lang_filter: LanguageFilter = LanguageFilter.ALL):
+    def __init__(self, lang_filter: Union[LanguageFilter, int] = LanguageFilter.ALL):
         self._esc_charset_prober: Optional[EscCharSetProber] = None
         self._utf1632_prober: Optional[UTF1632Prober] = None
         self._charset_probers: list = []
+        self.lang_filter = lang_filter
         self.result = None
         self.done = None
         self._got_data = None
@@ -167,13 +168,14 @@ class UniversalDetector:
         if self._input_state == InputState.ESC_ASCII:
             if not self._esc_charset_prober:
                 self._esc_charset_prober = EscCharSetProber(self.lang_filter)
-            if self._esc_charset_prober.feed(byte_str) == ProbingState.FOUND_IT:
-                self.result = {
-                    "encoding": self._esc_charset_prober.charset_name,
-                    "confidence": self._esc_charset_prober.get_confidence(),
-                    "language": self._esc_charset_prober.language,
-                }
-                self.done = True
+            if self._esc_charset_prober and self._esc_charset_prober.feed(byte_str) == ProbingState.FOUND_IT:
+                if hasattr(self._esc_charset_prober, 'charset_name') and hasattr(self._esc_charset_prober, 'get_confidence') and hasattr(self._esc_charset_prober, 'language'):
+                    self.result = {
+                        "encoding": self._esc_charset_prober.charset_name,
+                        "confidence": self._esc_charset_prober.get_confidence(),
+                        "language": self._esc_charset_prober.language,
+                    }
+                    self.done = True
         elif self._input_state == InputState.HIGH_BYTE:
             if not self._utf1632_prober:
                 self._utf1632_prober = UTF1632Prober()
@@ -193,7 +195,7 @@ class UniversalDetector:
                     self.done = True
                     break
 
-    def close(self) -> Dict[str, Optional[str | float]]:
+    def close(self) -> Dict[str, Optional[Union[str, float]]]:
         """Stop analyzing the current document and come up with a final
         prediction.
 
@@ -211,17 +213,19 @@ class UniversalDetector:
             return self.result
 
         if self._input_state == InputState.HIGH_BYTE:
-            probers = [self._utf1632_prober] + self._charset_probers
+            probers = [self._utf1632_prober] + self._charset_probers if self._utf1632_prober else self._charset_probers
             prober_confidences = [
-                (prober, prober.get_confidence()) for prober in probers
+                (prober, prober.get_confidence()) for prober in probers if prober
             ]
-            max_prober = max(prober_confidences, key=lambda x: x[1])
-            if max_prober[1] > self.MINIMUM_THRESHOLD:
-                self.result = {
-                    "encoding": max_prober[0].charset_name,
-                    "confidence": max_prober[1],
-                    "language": max_prober[0].language,
-                }
+            if prober_confidences:
+                max_prober = max(prober_confidences, key=lambda x: x[1])
+                if max_prober[1] > self.MINIMUM_THRESHOLD:
+                    if hasattr(max_prober[0], 'charset_name') and hasattr(max_prober[0], 'language'):
+                        self.result = {
+                            "encoding": max_prober[0].charset_name,
+                            "confidence": max_prober[1],
+                            "language": max_prober[0].language,
+                        }
             elif self._has_win_bytes:
                 self.result = {
                     "encoding": "windows-1252",
