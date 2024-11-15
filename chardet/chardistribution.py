@@ -32,21 +32,21 @@ class CharDistributionAnalysis:
     MINIMUM_DATA_THRESHOLD = 3
 
     def __init__(self):
-        self._char_to_freq_order = tuple()
-        self._table_size = None
-        self.typical_distribution_ratio = None
-        self._done = None
-        self._total_chars = None
-        self._freq_chars = None
+        self._char_to_freq_order: tuple = tuple()
+        self._table_size: int = 0
+        self.typical_distribution_ratio: float = 0.0
+        self._done: bool = False
+        self._total_chars: int = 0
+        self._freq_chars: int = 0
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset analyser, clear any state"""
         self._done = False
         self._total_chars = 0
         self._freq_chars = 0
 
-    def feed(self, char, char_len):
+    def feed(self, char: bytes, char_len: int) -> None:
         """Feed a character with known length"""
         if char_len == 2:
             # we only care about 2-bytes character in our distribution analysis
@@ -56,7 +56,7 @@ class CharDistributionAnalysis:
                 if order < self._table_size:
                     self._freq_chars += 1
 
-    def get_confidence(self):
+    def get_confidence(self) -> float:
         """Return confidence based on existing data"""
         if self._total_chars <= 0 or self._freq_chars <= self.MINIMUM_DATA_THRESHOLD:
             return self.SURE_NO
@@ -70,7 +70,8 @@ class CharDistributionAnalysis:
 
         return self.SURE_YES
 
-    def get_order(self, char):
+    def get_order(self, char: bytes) -> int:
+        """Get order of character in frequency table"""
         # We only care about 2-bytes characters.
         if len(char) != 2:
             return -1
