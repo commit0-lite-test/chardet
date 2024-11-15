@@ -32,7 +32,7 @@ class CharDistributionAnalysis:
     MINIMUM_DATA_THRESHOLD = 3
 
     def __init__(self):
-        self._char_to_freq_order: tuple = tuple()
+        self._char_to_freq_order: dict = {}
         self._table_size: int = 0
         self.typical_distribution_ratio: float = 0.0
         self._done: bool = False
