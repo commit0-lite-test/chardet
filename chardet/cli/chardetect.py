@@ -32,12 +32,9 @@ def description_of(lines: Iterable[bytes], name: str = "stdin") -> str:
             break
     u.close()
     result = u.result
-    if result["encoding"]:
-        return "{}: {} with confidence {}".format(
-            name, result["encoding"], result.get("confidence", "unknown")
-        )
-    else:
-        return "{}: no result".format(name)
+    if result is None or not result.get("encoding"):
+        return f"{name}: no result"
+    return f"{name}: {result['encoding']} with confidence {result.get('confidence', 'unknown')}"
 
 
 def main(argv: Optional[List[str]] = None) -> None:
