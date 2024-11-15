@@ -13,18 +13,17 @@ If no paths are provided, it takes its input from stdin.
 
 import argparse
 import sys
+from typing import Iterable, List, Optional
 from .. import __version__
 from ..universaldetector import UniversalDetector
 
 
-def description_of(lines, name="stdin"):
+def description_of(lines: Iterable[bytes], name: str = "stdin") -> str:
     """Return a string describing the probable encoding of a file or
     list of strings.
 
     :param lines: The lines to get the encoding of.
-    :type lines: Iterable of bytes
     :param name: Name of file or collection of lines
-    :type name: str
     """
     u = UniversalDetector()
     for line in lines:
@@ -35,18 +34,17 @@ def description_of(lines, name="stdin"):
     result = u.result
     if result["encoding"]:
         return "{}: {} with confidence {}".format(
-            name, result["encoding"], result["confidence"]
+            name, result["encoding"], result.get("confidence", "unknown")
         )
     else:
         return "{}: no result".format(name)
 
 
-def main(argv=None):
+def main(argv: Optional[List[str]] = None) -> None:
     """Handles command line arguments and gets things started.
 
     :param argv: List of arguments, as if specified on the command-line.
                  If None, ``sys.argv[1:]`` is used instead.
-    :type argv: list of str
     """
     parser = argparse.ArgumentParser(
         description="Takes one or more file paths and reports their detected encodings"
