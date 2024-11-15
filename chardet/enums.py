@@ -54,7 +54,7 @@ class SequenceLikelihood:
     @classmethod
     def get_num_categories(cls):
         """:returns: The number of likelihood categories in the enum."""
-        pass
+        return len([attr for attr in dir(cls) if not attr.startswith("__") and isinstance(getattr(cls, attr), int)])
 
 class CharacterCategory:
     """
