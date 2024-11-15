@@ -22,6 +22,7 @@ from .utf1632prober import UTF1632Prober
 class UniversalDetector:
     from .escprober import EscCharSetProber
     from .utf1632prober import UTF1632Prober
+
     """The ``UniversalDetector`` class underlies the ``chardet.detect`` function
     and coordinates all of the different charset probers.
 
