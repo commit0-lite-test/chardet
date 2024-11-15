@@ -24,7 +24,8 @@ class CharSetProber:
         are replaced by a single space ascii character.
         This filter applies to all scripts which do not use English characters.
         """
-        pass
+        filtered = INTERNATIONAL_WORDS_PATTERN.sub(b' ', buf)
+        return filtered
 
     @staticmethod
     def remove_xml_tags(buf):
@@ -35,4 +36,13 @@ class CharSetProber:
         characters and extended ASCII characters, but is currently only used by
         ``Latin1Prober``.
         """
-        pass
+        inside_tag = False
+        filtered = bytearray()
+        for byte in buf:
+            if byte == ord(b'<'):
+                inside_tag = True
+            elif byte == ord(b'>'):
+                inside_tag = False
+            elif not inside_tag:
+                filtered.append(byte)
+        return bytes(filtered)
