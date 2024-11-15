@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 from .charsetprober import CharSetProber
 from .enums import ProbingState
 
@@ -57,7 +57,7 @@ class UTF1632Prober(CharSetProber):
         self.position = 0
         self.zeros_at_mod = [0] * 4
         self.nonzeros_at_mod = [0] * 4
-        self._state: ProbingState = ProbingState.DETECTING
+        self._state: Optional[ProbingState] = None
         self.quad = [0, 0, 0, 0]
         self.invalid_utf16be = False
         self.invalid_utf16le = False
@@ -139,7 +139,7 @@ class UTF1632Prober(CharSetProber):
                     self._state = ProbingState.FOUND_IT
                     break
 
-        return self._state
+        return self._state if self._state is not None else ProbingState.NOT_ME
 
     def validate_utf32_characters(self, quad: bytes) -> bool:
         """Validate if the quad of bytes is valid UTF-32.
