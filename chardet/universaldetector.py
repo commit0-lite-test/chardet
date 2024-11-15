@@ -168,8 +168,15 @@ class UniversalDetector:
         if self._input_state == InputState.ESC_ASCII:
             if not self._esc_charset_prober:
                 self._esc_charset_prober = EscCharSetProber(self.lang_filter)
-            if self._esc_charset_prober and self._esc_charset_prober.feed(byte_str) == ProbingState.FOUND_IT:
-                if hasattr(self._esc_charset_prober, 'charset_name') and hasattr(self._esc_charset_prober, 'get_confidence') and hasattr(self._esc_charset_prober, 'language'):
+            if (
+                self._esc_charset_prober
+                and self._esc_charset_prober.feed(byte_str) == ProbingState.FOUND_IT
+            ):
+                if (
+                    hasattr(self._esc_charset_prober, "charset_name")
+                    and hasattr(self._esc_charset_prober, "get_confidence")
+                    and hasattr(self._esc_charset_prober, "language")
+                ):
                     self.result = {
                         "encoding": self._esc_charset_prober.charset_name,
                         "confidence": self._esc_charset_prober.get_confidence(),
@@ -213,14 +220,20 @@ class UniversalDetector:
             return self.result
 
         if self._input_state == InputState.HIGH_BYTE:
-            probers = [self._utf1632_prober] + self._charset_probers if self._utf1632_prober else self._charset_probers
+            probers = (
+                [self._utf1632_prober] + self._charset_probers
+                if self._utf1632_prober
+                else self._charset_probers
+            )
             prober_confidences = [
                 (prober, prober.get_confidence()) for prober in probers if prober
             ]
             if prober_confidences:
                 max_prober = max(prober_confidences, key=lambda x: x[1])
                 if max_prober[1] > self.MINIMUM_THRESHOLD:
-                    if hasattr(max_prober[0], 'charset_name') and hasattr(max_prober[0], 'language'):
+                    if hasattr(max_prober[0], "charset_name") and hasattr(
+                        max_prober[0], "language"
+                    ):
                         self.result = {
                             "encoding": max_prober[0].charset_name,
                             "confidence": max_prober[1],
