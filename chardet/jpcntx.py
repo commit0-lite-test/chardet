@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 jp2_char_context = (
     (
         0,
