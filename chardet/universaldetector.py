@@ -10,6 +10,7 @@ class a user of ``chardet`` should use.
 import codecs
 import logging
 import re
+from typing import Dict, Optional
 from .enums import InputState, LanguageFilter, ProbingState
 from .escprober import EscCharSetProber
 from .latin1prober import Latin1Prober
@@ -19,6 +20,8 @@ from .utf1632prober import UTF1632Prober
 
 
 class UniversalDetector:
+    from .escprober import EscCharSetProber
+    from .utf1632prober import UTF1632Prober
     """The ``UniversalDetector`` class underlies the ``chardet.detect`` function
     and coordinates all of the different charset probers.
 
@@ -49,10 +52,10 @@ class UniversalDetector:
         "iso-8859-13": "Windows-1257",
     }
 
-    def __init__(self, lang_filter=LanguageFilter.ALL):
-        self._esc_charset_prober = None
-        self._utf1632_prober = None
-        self._charset_probers = []
+    def __init__(self, lang_filter: LanguageFilter = LanguageFilter.ALL):
+        self._esc_charset_prober: Optional[EscCharSetProber] = None
+        self._utf1632_prober: Optional[UTF1632Prober] = None
+        self._charset_probers: list = []
         self.result = None
         self.done = None
         self._got_data = None
@@ -63,7 +66,7 @@ class UniversalDetector:
         self._has_win_bytes = None
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the UniversalDetector and all of its probers back to their
         initial states.  This is called by ``__init__``, so you only need to
         call this directly in between analyses of different documents.
@@ -78,7 +81,7 @@ class UniversalDetector:
         self._utf1632_prober = None
         self._charset_probers = []
 
-    def feed(self, byte_str):
+    def feed(self, byte_str: bytes) -> None:
         """Takes a chunk of a document and feeds it through all of the relevant
         charset probers.
 
@@ -189,7 +192,7 @@ class UniversalDetector:
                     self.done = True
                     break
 
-    def close(self):
+    def close(self) -> Dict[str, Optional[str | float]]:
         """Stop analyzing the current document and come up with a final
         prediction.
 
