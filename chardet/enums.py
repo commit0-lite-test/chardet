@@ -5,7 +5,7 @@
 
 
 class InputState:
-    """This enum represents the different states a universal detector can be in."""
+    """Enum representing different states a universal detector can be in."""
 
     PURE_ASCII = 0
     ESC_ASCII = 1
@@ -13,9 +13,7 @@ class InputState:
 
 
 class LanguageFilter:
-    """This enum represents the different language filters we can apply to a
-    ``UniversalDetector``.
-    """
+    """Enum representing different language filters for ``UniversalDetector``."""
 
     CHINESE_SIMPLIFIED = 1
     CHINESE_TRADITIONAL = 2
@@ -28,7 +26,7 @@ class LanguageFilter:
 
 
 class ProbingState:
-    """This enum represents the different states a prober can be in."""
+    """Enum representing different states a prober can be in."""
 
     DETECTING = 0
     FOUND_IT = 1
@@ -36,7 +34,7 @@ class ProbingState:
 
 
 class MachineState:
-    """This enum represents the different states a state machine can be in."""
+    """Enum representing different states a state machine can be in."""
 
     START = 0
     ERROR = 1
@@ -44,7 +42,7 @@ class MachineState:
 
 
 class SequenceLikelihood:
-    """This enum represents the likelihood of a character following the previous one."""
+    """Enum representing the likelihood of a character following the previous one."""
 
     NEGATIVE = 0
     UNLIKELY = 1
@@ -52,7 +50,7 @@ class SequenceLikelihood:
     POSITIVE = 3
 
     @classmethod
-    def get_num_categories(cls):
+    def get_num_categories(cls) -> int:
         """:returns: The number of likelihood categories in the enum."""
         return len(
             [
@@ -64,8 +62,7 @@ class SequenceLikelihood:
 
 
 class CharacterCategory:
-    """This enum represents the different categories language models for
-    ``SingleByteCharsetProber`` put characters into.
+    """Enum representing categories for ``SingleByteCharsetProber`` language models.
 
     Anything less than CONTROL is considered a letter.
     """
