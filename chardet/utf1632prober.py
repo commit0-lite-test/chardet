@@ -59,6 +59,68 @@ class UTF1632Prober(CharSetProber):
         self.first_half_surrogate_pair_detected_16le = False
         self.reset()
 
+    def reset(self):
+        self.position = 0
+        self.zeros_at_mod = [0] * 4
+        self.nonzeros_at_mod = [0] * 4
+        self._state = ProbingState.DETECTING
+        self.quad = [0, 0, 0, 0]
+        self.invalid_utf16be = False
+        self.invalid_utf16le = False
+        self.invalid_utf32be = False
+        self.invalid_utf32le = False
+        self.first_half_surrogate_pair_detected_16be = False
+        self.first_half_surrogate_pair_detected_16le = False
+
+    def feed(self, byte_str):
+        if self._state == ProbingState.NOT_ME:
+            return self._state
+
+        for byte in byte_str:
+            self.quad[self.position % 4] = byte
+            if byte == 0:
+                self.zeros_at_mod[self.position % 4] += 1
+            else:
+                self.nonzeros_at_mod[self.position % 4] += 1
+
+            if self.position % 4 == 3:
+                if not self.invalid_utf32be:
+                    self.invalid_utf32be = not self.validate_utf32_characters(bytes(self.quad))
+                if not self.invalid_utf32le:
+                    self.invalid_utf32le = not self.validate_utf32_characters(bytes(reversed(self.quad)))
+
+            if self.position % 2 == 1:
+                if not self.invalid_utf16be:
+                    pair = bytes(self.quad[(self.position - 1) % 4 : (self.position + 1) % 4])
+                    if not self.validate_utf16_characters(pair):
+                        self.invalid_utf16be = True
+                    elif 0xD800 <= int.from_bytes(pair, byteorder='big') <= 0xDBFF:
+                        self.first_half_surrogate_pair_detected_16be = True
+                    elif 0xDC00 <= int.from_bytes(pair, byteorder='big') <= 0xDFFF:
+                        if not self.first_half_surrogate_pair_detected_16be:
+                            self.invalid_utf16be = True
+                        self.first_half_surrogate_pair_detected_16be = False
+
+                if not self.invalid_utf16le:
+                    pair = bytes(reversed(self.quad[(self.position - 1) % 4 : (self.position + 1) % 4]))
+                    if not self.validate_utf16_characters(pair):
+                        self.invalid_utf16le = True
+                    elif 0xD800 <= int.from_bytes(pair, byteorder='big') <= 0xDBFF:
+                        self.first_half_surrogate_pair_detected_16le = True
+                    elif 0xDC00 <= int.from_bytes(pair, byteorder='big') <= 0xDFFF:
+                        if not self.first_half_surrogate_pair_detected_16le:
+                            self.invalid_utf16le = True
+                        self.first_half_surrogate_pair_detected_16le = False
+
+            self.position += 1
+
+            if self.position >= self.MIN_CHARS_FOR_DETECTION:
+                if self._check_encoding():
+                    self._state = ProbingState.FOUND_IT
+                    break
+
+        return self._state
+
     def validate_utf32_characters(self, quad):
         """
         Validate if the quad of bytes is valid UTF-32.
