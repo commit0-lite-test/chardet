@@ -1,9 +1,10 @@
+from typing import Union
 from .charsetprober import CharSetProber
 from .enums import ProbingState
 
 
 class UTF1632Prober(CharSetProber):
-    def _check_encoding(self):
+    def _check_encoding(self) -> bool:
         total_chars = sum(self.zeros_at_mod) + sum(self.nonzeros_at_mod)
         if total_chars < self.MIN_CHARS_FOR_DETECTION:
             return False
@@ -32,7 +33,8 @@ class UTF1632Prober(CharSetProber):
 
         return False
 
-    def get_confidence(self):
+    def get_confidence(self) -> float:
+        """Return the confidence of the prober."""
         if self._state == ProbingState.FOUND_IT:
             return 0.99
         elif self._state == ProbingState.NOT_ME:
@@ -55,7 +57,7 @@ class UTF1632Prober(CharSetProber):
         self.position = 0
         self.zeros_at_mod = [0] * 4
         self.nonzeros_at_mod = [0] * 4
-        self._state = ProbingState.DETECTING
+        self._state: ProbingState = ProbingState.DETECTING
         self.quad = [0, 0, 0, 0]
         self.invalid_utf16be = False
         self.invalid_utf16le = False
@@ -65,7 +67,8 @@ class UTF1632Prober(CharSetProber):
         self.first_half_surrogate_pair_detected_16le = False
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
+        """Reset the prober state."""
         self.position = 0
         self.zeros_at_mod = [0] * 4
         self.nonzeros_at_mod = [0] * 4
@@ -78,7 +81,8 @@ class UTF1632Prober(CharSetProber):
         self.first_half_surrogate_pair_detected_16be = False
         self.first_half_surrogate_pair_detected_16le = False
 
-    def feed(self, byte_str):
+    def feed(self, byte_str: Union[bytes, bytearray]) -> ProbingState:
+        """Feed a chunk of data through the prober."""
         if self._state == ProbingState.NOT_ME:
             return self._state
 
@@ -137,7 +141,7 @@ class UTF1632Prober(CharSetProber):
 
         return self._state
 
-    def validate_utf32_characters(self, quad):
+    def validate_utf32_characters(self, quad: bytes) -> bool:
         """Validate if the quad of bytes is valid UTF-32.
 
         UTF-32 is valid in the range 0x00000000 - 0x0010FFFF
@@ -148,7 +152,7 @@ class UTF1632Prober(CharSetProber):
         value = int.from_bytes(quad, byteorder="big")
         return 0 <= value <= 0x10FFFF and not (0xD800 <= value <= 0xDFFF)
 
-    def validate_utf16_characters(self, pair):
+    def validate_utf16_characters(self, pair: bytes) -> bool:
         """Validate if the pair of bytes is  valid UTF-16.
 
         UTF-16 is valid in the range 0x0000 - 0xFFFF excluding 0xD800 - 0xFFFF
