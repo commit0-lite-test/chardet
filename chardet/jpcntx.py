@@ -7057,6 +7057,8 @@ jp2_char_context = (
 )
 
 
+from typing import List, Optional
+
 class JapaneseContextAnalysis:
     NUM_OF_CATEGORY = 6
     DONT_KNOW = -1
@@ -7065,21 +7067,23 @@ class JapaneseContextAnalysis:
     MINIMUM_DATA_THRESHOLD = 4
 
     def __init__(self):
-        self._total_rel = None
-        self._rel_sample = None
-        self._need_to_skip_char_num = None
-        self._last_char_order = None
-        self._done = None
+        self._total_rel: int = 0
+        self._rel_sample: List[int] = []
+        self._need_to_skip_char_num: int = 0
+        self._last_char_order: int = self.DONT_KNOW
+        self._done: bool = False
         self.reset()
 
-    def reset(self):
+    def reset(self) -> None:
+        """Reset the analysis state."""
         self._total_rel = 0  # total sequence received
         self._rel_sample = [0] * self.NUM_OF_CATEGORY  # category counters
         self._need_to_skip_char_num = 0  # need to skip how many characters
         self._last_char_order = self.DONT_KNOW  # The order of previous char
         self._done = False  # Done analyzing data?
 
-    def feed(self, char, char_len):
+    def feed(self, char: bytes, char_len: int) -> None:
+        """Feed a character for analysis."""
         if char_len == 2:
             order = self.get_order(char)
             if order != self.DONT_KNOW:
@@ -7100,23 +7104,28 @@ class JapaneseContextAnalysis:
         else:
             self._last_char_order = self.DONT_KNOW
 
-    def got_enough_data(self):
+    def got_enough_data(self) -> bool:
+        """Check if enough data has been analyzed."""
         return self._total_rel > self.ENOUGH_REL_THRESHOLD
 
-    def get_confidence(self):
+    def get_confidence(self) -> float:
+        """Get the confidence of the analysis."""
         if self._total_rel > self.MINIMUM_DATA_THRESHOLD:
             total = sum(self._rel_sample)
             if total > 0:
-                return self._rel_sample[0] * 100 // total
+                return self._rel_sample[0] * 100 / total
         return self.DONT_KNOW
 
-    def get_order(self, char):
+    def get_order(self, char: bytes) -> int:
+        """Get the order of a character."""
         return self.DONT_KNOW  # This method should be implemented in subclasses
 
-    def get_coding_state_machine(self):
+    def get_coding_state_machine(self) -> Optional[object]:
+        """Get the coding state machine."""
         return None  # This method should be implemented in subclasses
 
-    def get_charset_name(self):
+    def get_charset_name(self) -> Optional[str]:
+        """Get the charset name."""
         return None  # This method should be implemented in subclasses
 
 
@@ -7125,7 +7134,8 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
         super().__init__()
         self._charset_name = "SHIFT_JIS"
 
-    def get_order(self, char):
+    def get_order(self, char: bytes) -> int:
+        """Get the order of a character in SHIFT_JIS encoding."""
         if char[0] >= 0x81 and char[0] <= 0x9F:
             order = 188 * (char[0] - 0x81)
         elif char[0] >= 0xE0 and char[0] <= 0xFC:
@@ -7139,7 +7149,8 @@ class SJISContextAnalysis(JapaneseContextAnalysis):
             return order
         return self.DONT_KNOW
 
-    def get_charset_name(self):
+    def get_charset_name(self) -> str:
+        """Get the charset name."""
         return self._charset_name
 
 
@@ -7148,7 +7159,8 @@ class EUCJPContextAnalysis(JapaneseContextAnalysis):
         super().__init__()
         self._charset_name = "EUC-JP"
 
-    def get_order(self, char):
+    def get_order(self, char: bytes) -> int:
+        """Get the order of a character in EUC-JP encoding."""
         if char[0] == 0x8E:
             return self.DONT_KNOW
         if (char[0] >= 0xA1 and char[0] <= 0xFE) and (
@@ -7159,5 +7171,6 @@ class EUCJPContextAnalysis(JapaneseContextAnalysis):
                 return order
         return self.DONT_KNOW
 
-    def get_charset_name(self):
+    def get_charset_name(self) -> str:
+        """Get the charset name."""
         return self._charset_name
